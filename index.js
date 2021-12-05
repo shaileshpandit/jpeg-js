@@ -1,7 +1,8 @@
 var encode = require('./lib/encoder'),
-    decode = require('./lib/decoder');
+    {decode, parse} = require('./lib/decoder');
 
 module.exports = {
   encode: encode,
-  decode: decode
+  decode: decode,
+  parse: parse
 };
