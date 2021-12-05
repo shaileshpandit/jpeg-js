@@ -9,34 +9,32 @@ function fixture(name) {
 }
 
 it('should be able to decode a JPEG', function () {
-  const jpegData = fixture('partial.jpeg');
+  const jpegData = fixture('partial-test.jpg');
   const { mcuData } = jpeg.parse(jpegData);
   console.log('mcuData: ', mcuData);
 
-  const lengthsArr = new Int16Array(mcuData.numMcus);
-  mcuData.bitOffsets.forEach((offset, index, arr)=>lengthsArr[index] = arr[index+1] - arr[index]);
-  console.log({lengthsArr}, zlib.gzipSync(lengthsArr).length);
-  const gzBitOffsets = zlib.gzipSync(mcuData.bitOffsets);
+  const gzBitLengths = zlib.gzipSync(mcuData.bitLengths);
   const gzPredsArray = mcuData.preds.map(preds => zlib.gzipSync(preds));
 
-  console.log('gzipped McuData sizes: ', gzBitOffsets.length, gzPredsArray.map(gzPreds => gzPreds.length));
+  console.log('gzipped McuData sizes: ', gzBitLengths.length, gzPredsArray.map(gzPreds => gzPreds.length));
 
-  const decBitOffsetsBuf = zlib.gunzipSync(gzBitOffsets).buffer;
-  const decPredsBufArray = gzPredsArray.map(gzPreds => zlib.gunzipSync(gzPreds).buffer);
+  const decBitLengthsBuf = zlib.gunzipSync(gzBitLengths);
+  const decPredsBufArray = gzPredsArray.map(gzPreds => zlib.gunzipSync(gzPreds));
   const decMcuData = {
     numMcus: mcuData.numMcus,
     numComponents: mcuData.numComponents,
     scanLength: mcuData.scanLength,
-    bitOffsets: new Uint32Array(decBitOffsetsBuf, decBitOffsetsBuf.length / 4),
-    preds: decPredsBufArray.map(decPredsBuf => new Int16Array(decPredsBuf, decPredsBuf.length / 2))
+    firstMcuBitOffset: mcuData.firstMcuBitOffset,
+    bitLengths: new Uint32Array(decBitLengthsBuf.buffer, 0, decBitLengthsBuf.length / 4),
+    preds: decPredsBufArray.map(decPredsBuf => new Int16Array(decPredsBuf.buffer, 0, decPredsBuf.length / 2))
   }
   console.log('decMcuData: ', decMcuData);
 
   const opts = {
     cropOptions: {
       mcuData: decMcuData,
-      fromScanline: 1440,
-      toScanline: 3063
+      fromScanline: 16,
+      toScanline: 63
     }
   };
   var rawImageData = jpeg.decode(jpegData, opts);

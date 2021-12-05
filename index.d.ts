@@ -18,13 +18,14 @@ export interface McuData {
   numMcus: number,
   numComponents: number,
   scanLength: number,
+  firstMcuBitOffset: number,
   
-  // bit offset of Mcus in file
-  // currently supports images with scan size upto 2^29, 3 bits for bit offset
-  // bit offset is required as Mcus can start at random bit position and not always
-  // on byte boundries in file
+  // bit lengths of Mcus in file
+  // currently supports mcu lengths upto 2^29, 3 bits for bit offset
+  // bit offset is required as Mcus can start at random bit position 
+  // and not always on byte boundries in file
   // this can be stored using huffman encoded bit length of each mcu
-  bitOffsets: Uint32Array
+  bitLengths: Uint32Array,
   
   // component predictions at start of each Mcu for each component
   // this can be stored using original huffman coded dc coefficients from original file
